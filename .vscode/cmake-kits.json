@@ -1,0 +1,28 @@
+[
+  {
+    "name": "ARM LLVM (ATfE) - Ninja",
+    "description": "LLVM-embedded-toolchain-for-Arm (clang) with Ninja",
+    "toolchainFile": "${workspaceFolder}/cmake/llvm.cmake",
+    "cmakeSettings": {
+      "ARM_TOOLCHAIN_PATH": "${env:ARM_TOOLCHAIN_PATH}",
+      "RENESAS_IDE": "e2studio"
+    },
+    "preferredGenerator": {
+      "name": "Ninja"
+    },
+    "isTrusted": true
+  },
+  {
+    "name": "ARM LLVM (ATfE) - MinGW Makefiles",
+    "description": "LLVM-embedded-toolchain-for-Arm (clang) with MinGW Makefiles",
+    "toolchainFile": "${workspaceFolder}/cmake/llvm.cmake",
+    "cmakeSettings": {
+      "ARM_TOOLCHAIN_PATH": "${env:ARM_TOOLCHAIN_PATH}",
+      "RENESAS_IDE": "e2studio"
+    },
+    "preferredGenerator": {
+      "name": "MinGW Makefiles"
+    },
+    "isTrusted": true
+  }
+]
