@@ -67,3 +67,26 @@ execute_process(COMMAND ${RASC_EXE_PATH} -nosplash --generate --devicefamily ra 
 if(NOT RASC_EXIT_CODE EQUAL "0")
     message(FATAL_ERROR "Failed to run RASC generate command")
 endif()
+
+# --- Restore #ToolchainVersion# in configuration.xml ---------------------------
+# The headless RASC CLI accepts --toolchainversion for the generate step but does
+# not write it back: it rewrites configuration.xml with
+#     <option key="#ToolchainVersion#" value=""/>
+# The e2 studio GUI, which resolves the version from its installed-toolchain
+# registry, does persist it. So every VS Code regeneration blanks the field and
+# shows up as a spurious diff; e2 studio may then re-prompt for a toolchain
+# version when the project is opened.
+#
+# #SELECTED_TOOLCHAIN# (clang_arm) is left untouched by RASC, so the toolchain
+# choice itself is never lost -- only the version string. Put it back here so
+# configuration.xml stays consistent between the two IDEs.
+file(READ "${RASC_CONFIG_FILE}" RASC_CONFIG_CONTENT)
+string(REGEX REPLACE
+    "(<option key=\"#ToolchainVersion#\" value=\")[^\"]*(\"/>)"
+    "\\1${RASC_TOOLCHAIN_VERSION}\\2"
+    RASC_CONFIG_PATCHED "${RASC_CONFIG_CONTENT}")
+
+if(NOT RASC_CONFIG_PATCHED STREQUAL RASC_CONFIG_CONTENT)
+    file(WRITE "${RASC_CONFIG_FILE}" "${RASC_CONFIG_PATCHED}")
+    message(STATUS "Restored #ToolchainVersion# = ${RASC_TOOLCHAIN_VERSION} in configuration.xml")
+endif()
