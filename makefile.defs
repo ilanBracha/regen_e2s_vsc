@@ -1,0 +1,127 @@
+################################################################################
+# Project-level build customization (committed; NOT auto-generated).
+#
+# This file is pulled in by the generated Debug/makefile via
+#   -include ../makefile.defs
+# which happens AFTER all subdir.mk files (so USER_OBJS additions are visible
+# to the elf rule that uses $(OBJS) $(USER_OBJS)) but BEFORE the `clean` and
+# `all` targets, so any override / addition here wins and survives a full
+# regeneration of the Debug/ folder by the FSP configurator.
+#
+# ---------------------------------------------------------------------------
+# 1) `clean` fix
+# ---------------------------------------------------------------------------
+# e2studio generates `RM := -rf` in Debug/makefile -- the `rm` program
+# name is missing. That makes the `clean` recipe expand to `xargs ... -rf`
+# and `-rf <file>`, which BusyBox rejects, so `clean` silently deletes
+# nothing (every clean line is prefixed with `-@`, hiding the error) and the
+# next build is incremental instead of a full rebuild.
+#
+# Redefining RM here restores a working `clean` and survives regeneration of
+# the Debug/ folder.
+################################################################################
+
+RM := rm -rf
+
+################################################################################
+# 2) External sources from pes-console-io (survives FSP regen)
+# ---------------------------------------------------------------------------
+# The following .c files live outside the e2studio-managed `src/` folder and
+# used to be pulled in as Eclipse `<linkedResources>` inside .project. Those
+# links have been removed so the files no longer appear under `src/` in the
+# Project Explorer. Instead we compile them here so the setup is 100% driven
+# by the makefile (surviving any FSP configurator regeneration of
+# .project / .cproject / Debug/**/subdir.mk).
+#
+# Files compiled:
+#   pes-console-io/.../src/r_byteq.c
+#   pes-console-io/.../src/syscalls_picolib_stdio_to_uart.c
+################################################################################
+
+# Path to the external source folder, relative to Debug/ (make's CWD).
+PES_IO_SRCDIR := ../pes-console-io/examples/e2studio/stdio_uart_on_fpb_ra2e3/src
+
+# Where the object files land under Debug/. Mirrors the source tree layout
+# used by the generated subdir.mk files so paths stay readable in the map.
+PES_IO_OBJDIR := pes-console-io/examples/e2studio/stdio_uart_on_fpb_ra2e3/src
+
+PES_IO_OBJS := \
+  $(PES_IO_OBJDIR)/r_byteq.o \
+  $(PES_IO_OBJDIR)/syscalls_picolib_stdio_to_uart.o
+
+PES_IO_DEPS := $(PES_IO_OBJS:.o=.d)
+
+# Make sure the output directory exists at parse time (before any $(file > ...)
+# in the compile recipe expands, which happens *before* recipe lines run).
+#
+# `mkdir -p` is a Unix-ism: it only works when make's $(shell ...) is run by a
+# Unix-like shell (sh / BusyBox, which some Windows setups have on PATH). On a
+# "plain" Windows PC $(shell ...) runs cmd.exe, where:
+#   * `-p` is not a valid option (it would create a stray folder named `-p`),
+#   * forward slashes are not accepted by cmd's mkdir, and
+#   * mkdir already creates intermediate directories on its own.
+# So pick the right incantation depending on the shell in use.
+ifeq ($(OS),Windows_NT)
+  ifeq (,$(findstring sh,$(notdir $(SHELL))))
+    # $(shell) is cmd.exe -> native mkdir with back-slashes, guarded by
+    # `if not exist` so re-parsing the makefile does not error out.
+    MKDIR_P = if not exist "$(subst /,\,$1)" mkdir "$(subst /,\,$1)"
+  else
+    # A Unix-like shell is available even on Windows (e.g. MSYS/BusyBox).
+    MKDIR_P = mkdir -p "$1"
+  endif
+else
+  MKDIR_P = mkdir -p "$1"
+endif
+
+$(shell $(call MKDIR_P,$(PES_IO_OBJDIR)))
+
+# Register with the standard managed-build variables.
+#   USER_OBJS -> picked up by the elf link rule:
+#       Ra2e1_PtxIotReader.elf: $(OBJS) $(USER_OBJS) ...
+#   C_DEPS    -> so the generic `-include $(C_DEPS)` in Debug/makefile brings
+#                in header dependency tracking for these files too.
+USER_OBJS += $(PES_IO_OBJS)
+C_DEPS    += $(PES_IO_DEPS)
+
+# Compile flags for the external files. These MUST match the flags used for
+# `src/%.o` in Debug/src/subdir.mk (same MCU, same defines, same include set)
+# because r_byteq.c / syscalls_picolib_stdio_to_uart.c consume FSP headers
+# (r_uart_api.h, bsp_api.h, ...) via the same include search path.
+#
+# A copy of the flag list is kept here on purpose: it decouples us from the
+# CDT-regenerated subdir.mk. If the toolchain flags in .cproject ever change
+# (e.g. new -D or new -I), update the list below to match.
+PES_IO_CFLAGS := \
+  -mcpu=cortex-m23 -mthumb -mfloat-abi=soft \
+  -Oz -ffunction-sections -fdata-sections \
+  -fdiagnostics-parseable-fixits -g3 -gdwarf-4 \
+  -D_RENESAS_RA_ -DSSP_SUPPRESS_ISR_g_uart0 \
+  -DPTX_FEATURES_NSC_READER_ONLY -DPTX_PRODUCT_TYPE_IOT_READER \
+  -DUSE_PTX_IOTRD_DEMO -D_RA_ORDINAL=1 -D_RA_CORE=CM23
+
+# Include paths (project-root-absolute so they work regardless of make CWD).
+# The first entry lets syscalls_picolib_stdio_to_uart.c find r_byteq.h which
+# lives next to it in the same external folder.
+PES_IO_PRJ := $(abspath ..)
+PES_IO_INCLUDES := \
+  -I"." \
+  -I"$(PES_IO_PRJ)/pes-console-io/examples/e2studio/stdio_uart_on_fpb_ra2e3/src" \
+  -I"$(PES_IO_PRJ)/src" \
+  -I"$(PES_IO_PRJ)/ra/fsp/inc" \
+  -I"$(PES_IO_PRJ)/ra/fsp/inc/api" \
+  -I"$(PES_IO_PRJ)/ra/fsp/inc/instances" \
+  -I"$(PES_IO_PRJ)/ra/arm/CMSIS_6/CMSIS/Core/Include" \
+  -I"$(PES_IO_PRJ)/ra_gen" \
+  -I"$(PES_IO_PRJ)/ra_cfg/fsp_cfg/bsp" \
+  -I"$(PES_IO_PRJ)/ra_cfg/fsp_cfg" \
+  -I"$(PES_IO_PRJ)/ra_cfg/aws" \
+  -I"$(PES_IO_PRJ)/ra/fsp/src/rm_freertos_port" \
+  -I"$(PES_IO_PRJ)/ra/aws/FreeRTOS/FreeRTOS/Source/include"
+
+# Pattern rule -- same shape as the generated src/%.o rule so build output
+# looks consistent (uses response file, invokes clang for arm-none-eabi).
+$(PES_IO_OBJDIR)/%.o: $(PES_IO_SRCDIR)/%.c
+	@echo 'Building file: $<'
+	$(file > $@.in,$(PES_IO_CFLAGS) $(PES_IO_INCLUDES) -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" "$<" -c -o "$@")
+	@clang --target=arm-none-eabi @"$@.in"

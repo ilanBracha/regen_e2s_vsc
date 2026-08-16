@@ -1,0 +1,3 @@
+[submodule "pes-console-io"]
+	path = pes-console-io
+	url = git@gitlab.global.renesas.com:mcusys/pes-console-io.git

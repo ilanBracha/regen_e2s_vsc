@@ -1,0 +1,20 @@
+# e² studio / Eclipse build output
+Debug/
+Release/
+*_Debug/
+*_Release/
+
+# JLink logs
+*.log
+*.jlink
+
+# Eclipse workspace metadata
+.metadata/
+.settings/language.settings.xml
+
+# FSP generated files (optional — uncomment to exclude)
+# ra_gen/
+
+# OS files
+.DS_Store
+Thumbs.db
