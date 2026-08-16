@@ -26,23 +26,29 @@ RM := rm -rf
 ################################################################################
 # 2) External sources from pes-console-io (survives FSP regen)
 # ---------------------------------------------------------------------------
-# The following .c files live outside the e2studio-managed `src/` folder and
-# used to be pulled in as Eclipse `<linkedResources>` inside .project. Those
-# links have been removed so the files no longer appear under `src/` in the
-# Project Explorer. Instead we compile them here so the setup is 100% driven
-# by the makefile (surviving any FSP configurator regeneration of
+# `pes-console-io` is a git submodule checked out at `src/pes-console-io`.
+# It is sparse-checked-out (non-cone mode) so only the files below land on
+# disk; see `git -C src/pes-console-io sparse-checkout list`.
+#
+# Although the submodule lives under the e2studio-managed `src/` folder, the
+# folder is listed in the `excluding=` attribute of the `src` <entry> in
+# .cproject, so CDT does NOT generate a Debug/src/pes-console-io/**/subdir.mk
+# for it. We compile the files here instead, so the setup is 100% driven by
+# the makefile (surviving any FSP configurator regeneration of
 # .project / .cproject / Debug/**/subdir.mk).
 #
 # Files compiled:
-#   pes-console-io/.../src/r_byteq.c
-#   pes-console-io/.../src/syscalls_picolib_stdio_to_uart.c
+#   src/pes-console-io/.../src/r_byteq.c
+#   src/pes-console-io/.../src/syscalls_picolib_stdio_to_uart.c
 ################################################################################
 
 # Path to the external source folder, relative to Debug/ (make's CWD).
-PES_IO_SRCDIR := ../pes-console-io/examples/e2studio/stdio_uart_on_fpb_ra2e3/src
+PES_IO_SRCDIR := ../src/pes-console-io/examples/e2studio/stdio_uart_on_fpb_ra2e3/src
 
 # Where the object files land under Debug/. Mirrors the source tree layout
 # used by the generated subdir.mk files so paths stay readable in the map.
+# Deliberately NOT under Debug/src/ so it can never collide with a
+# CDT-generated object directory.
 PES_IO_OBJDIR := pes-console-io/examples/e2studio/stdio_uart_on_fpb_ra2e3/src
 
 PES_IO_OBJS := \
@@ -106,7 +112,7 @@ PES_IO_CFLAGS := \
 PES_IO_PRJ := $(abspath ..)
 PES_IO_INCLUDES := \
   -I"." \
-  -I"$(PES_IO_PRJ)/pes-console-io/examples/e2studio/stdio_uart_on_fpb_ra2e3/src" \
+  -I"$(PES_IO_PRJ)/src/pes-console-io/examples/e2studio/stdio_uart_on_fpb_ra2e3/src" \
   -I"$(PES_IO_PRJ)/src" \
   -I"$(PES_IO_PRJ)/ra/fsp/inc" \
   -I"$(PES_IO_PRJ)/ra/fsp/inc/api" \

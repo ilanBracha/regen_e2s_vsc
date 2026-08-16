@@ -1013,7 +1013,7 @@
 					<sourceEntries>
 						<entry excluding="renesas/wireless/ptx/rm_nfc_reader_ptx_sdk/SRC/COMPS/COMMON/ptxCOMMON.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="ra"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="ra_gen"/>
-						<entry excluding="nfc_reader/src/rs_ndef_write.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="pes-console-io" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
